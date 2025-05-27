@@ -2,10 +2,12 @@ package pl.finances.finances_app.services;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.*;
 import pl.finances.finances_app.dto.requestAndResponse.TransactionRequest;
 import pl.finances.finances_app.dto.requestAndResponse.TransactionResponse;
@@ -74,12 +76,28 @@ public class TransactionService {
         return ResponseEntity.ok(transactions);
     }
 
-    public double getWeeklyExpenses(long id){
-        return transactionRepository.getLastWeekExpenses(id);
+    public ResponseEntity<?> deleteTransaction(Jwt jwt, long id) {
+        if(!transactionRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String username = jwt.getClaimAsString("preferred_username");
+        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+        if(transactionRepository.findById(id).get().getUserAccount().getId() != userAccount.getId()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete this transaction.");
+        }
+
+        transactionRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
-    public double getMeanOfWeeklyExpenses(long id){
-        return transactionRepository.getLastWeekAverageExpenses(id);
+    public ResponseEntity<List<TopCategoryDTO>> findExpenseCategoriesSummary(Jwt jwt) {
+        String username = jwt.getClaimAsString("preferred_username");
+        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+
+        List<TopCategoryDTO> categories = transactionRepository.findExpenseCategoriesSummary(userAccount.getId());
+
+        return ResponseEntity.ok(categories);
     }
 
     public List<TopCategoryDTO> findTopExpenseCategories(long id) {
@@ -90,7 +108,17 @@ public class TransactionService {
         return transactionRepository.findLast3Transactions(id);
     }
 
+    public double getWeeklyExpenses(long id){
+        return transactionRepository.getLastWeekExpenses(id);
+    }
+
+    public double getMeanOfWeeklyExpenses(long id){
+        return transactionRepository.getLastWeekAverageExpenses(id);
+    }
+
     public double getBeforeWeekExpenses(long id) {
         return transactionRepository.getBeforeLastWeekExpenses(id);
     }
+
+
 }

@@ -45,4 +45,9 @@ public class TransactionController {
     ){
         return transactionService.filterAndGetTransactions(jwt, type, category, amount, startDate, endDate);
     }
+
+    @DeleteMapping("/transaction/delete/{id}")
+    ResponseEntity<?> getTransactions(@AuthenticationPrincipal Jwt jwt, @RequestParam long id) {
+        return transactionService.deleteTransaction(jwt, id);
+    }
 }
