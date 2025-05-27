@@ -1,11 +1,14 @@
 package pl.finances.finances_app.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.requestAndResponse.BudgetRequest;
 import pl.finances.finances_app.dto.requestAndResponse.BudgetResponse;
 import pl.finances.finances_app.repositories.BudgetRepository;
@@ -31,14 +34,23 @@ public class BudgetService {
 
 
     public ResponseEntity<BudgetResponse> addNewBudget(Jwt jwt, @Valid BudgetRequest budget) {
+        BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_CategoryName(budget.categoryName());
+
+        if(budgetEntity == null) {
+            throw new EntityNotFoundException("Budget entity not found");
+        }
+
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        CategoryEntity category = categoryService.findCategoryById(budget.categoryId()).orElseThrow(() -> new RuntimeException("Category not found"));
 
-        BudgetEntity budgetEntity = new BudgetEntity(userAccount, category, budget.amountLimit());
+        if(budgetEntity.getUserAccount().getId() != userAccount.getId()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this budget.");
+        }
+
+        budgetEntity.setAmountLimit(budget.amountLimit());
         budgetRepository.save(budgetEntity);
 
-        BudgetResponse response = new BudgetResponse(category.getCategoryName(), budget.amountLimit());
-        return ResponseEntity.created(URI.create("/new/budget/" + budgetEntity.getCategory())).body(response);
+        BudgetResponse response = new BudgetResponse(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
+        return ResponseEntity.created(URI.create("/set/budget/" + budgetEntity.getCategory())).body(response);
     }
 }

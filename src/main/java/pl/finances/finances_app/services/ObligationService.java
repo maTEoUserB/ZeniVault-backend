@@ -2,10 +2,12 @@ package pl.finances.finances_app.services;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
 import pl.finances.finances_app.dto.requestAndResponse.ObligationRequest;
 import pl.finances.finances_app.dto.requestAndResponse.ObligationResponse;
@@ -47,5 +49,25 @@ public class ObligationService {
                 newObligation.getDateToPay(), category.getId());
 
         return ResponseEntity.created(URI.create("/new/obligation/" + newObligation.getId())).body(response);
+    }
+
+    public ResponseEntity<List<NearestObligationsDTO>> getObligations(Jwt jwt, boolean done) {
+        String username = jwt.getClaimAsString("preferred_username");
+        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+
+        List<NearestObligationsDTO> obligations = obligationRepository.findObligations(userAccount.getId(), done);
+
+        return ResponseEntity.ok(obligations);
+    }
+
+    public ResponseEntity<?> deleteObligation(long id) {
+        ObligationEntity obligation = obligationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Obligation not found."));
+
+        if(obligation.isDone()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Obligation is already done");
+        }
+
+        obligationRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

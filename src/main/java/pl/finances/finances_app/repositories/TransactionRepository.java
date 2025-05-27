@@ -3,6 +3,7 @@ package pl.finances.finances_app.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import pl.finances.finances_app.dto.LastTransactionsDTO;
 import pl.finances.finances_app.dto.TopCategoryDTO;
@@ -20,16 +21,27 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     void deleteById(Long id);
 
     @Query(value = """
-    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, SUM(t.transaction_amount)/NULLIF(SUM(b.amount_limit), 0) AS budgetProcent
+    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
     FROM transactions t
     JOIN categories c ON t.category_id = c.id
     LEFT JOIN budgets b ON b.category_id = t.category_id AND b.user_id = t.user_id
     WHERE t.user_id = :id AND c.type_for_category = 'expense'
-    GROUP BY c.id, c.category_name
+    GROUP BY c.id, c.category_name, b.amount_limit
     ORDER BY totalAmount DESC
     LIMIT 3
 """, nativeQuery = true)
     List<TopCategoryDTO> findTop3ExpenseCategories(@Param("id") long id);
+
+    @Query(value = """
+    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
+    FROM transactions t
+    JOIN categories c ON t.category_id = c.id
+    LEFT JOIN budgets b ON b.category_id = t.category_id AND b.user_id = t.user_id
+    WHERE t.user_id = :id AND c.type_for_category = 'expense'
+    GROUP BY c.id, c.category_name, b.amount_limit
+    ORDER BY totalAmount DESC
+""", nativeQuery = true)
+    List<TopCategoryDTO> findExpenseCategoriesSummary(@Param("id") long id);
 
     @Query(value = """
     SELECT t.transaction_title AS transactionTitle, t.transaction_description AS transactionDescription, t.transaction_amount AS amount, c.category_name AS category, t.transaction_type AS type, t.transaction_date AS transactionDate
