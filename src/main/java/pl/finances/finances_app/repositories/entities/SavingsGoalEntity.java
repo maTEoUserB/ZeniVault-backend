@@ -22,7 +22,6 @@ public class SavingsGoalEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private AccountEntity userAccount;
-    private String goalDescription;
     @NotNull
     private double currentAmount;
     @NotNull
@@ -32,10 +31,9 @@ public class SavingsGoalEntity {
     @NotNull
     private LocalDate goalDeadline;
 
-    public SavingsGoalEntity(@NotNull String goalTitle, @NotNull AccountEntity userAccount, String goalDescription, @NotNull double currentAmount, @NotNull double finalAmount, @NotNull LocalDate goalDeadline) {
+    public SavingsGoalEntity(@NotNull String goalTitle, @NotNull AccountEntity userAccount, @NotNull double currentAmount, @NotNull double finalAmount, @NotNull LocalDate goalDeadline) {
         this.goalTitle = goalTitle;
         this.userAccount = userAccount;
-        this.goalDescription = goalDescription;
         this.currentAmount = currentAmount;
         this.finalAmmount = finalAmount;
         this.isDone = false;
