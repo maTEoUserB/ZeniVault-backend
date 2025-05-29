@@ -1,6 +1,5 @@
-package pl.finances.finances_app.dto.requestAndResponse;
+package pl.finances.finances_app.dto.requestsAndResponses;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record TransactionRequest(String transactionTitle, double transactionAmount, String transactionDescription,

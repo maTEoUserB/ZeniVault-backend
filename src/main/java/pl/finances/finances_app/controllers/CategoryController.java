@@ -6,7 +6,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import pl.finances.finances_app.dto.TopCategoryDTO;
-import pl.finances.finances_app.dto.requestAndResponse.CategoryResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.CategoryResponse;
 import pl.finances.finances_app.services.CategoryService;
 import pl.finances.finances_app.services.TransactionService;
 

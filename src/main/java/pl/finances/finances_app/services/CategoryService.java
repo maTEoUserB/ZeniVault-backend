@@ -2,15 +2,12 @@ package pl.finances.finances_app.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.finances.finances_app.dto.TopCategoryDTO;
-import pl.finances.finances_app.dto.requestAndResponse.CategoryResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.CategoryResponse;
 import pl.finances.finances_app.repositories.CategoryRepository;
 import pl.finances.finances_app.repositories.entities.CategoryEntity;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;

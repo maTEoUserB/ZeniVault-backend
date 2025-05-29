@@ -8,7 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.finances.finances_app.dto.LastTransactionsDTO;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
 import pl.finances.finances_app.dto.TopCategoryDTO;
-import pl.finances.finances_app.dto.requestAndResponse.IndexResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.IndexResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.SummaryResponse;
+import pl.finances.finances_app.repositories.TransactionRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import java.math.BigDecimal;
@@ -23,14 +25,16 @@ public class AccountService {
     private final SavingsGoalService savingsGoalService;
     private final ExchangeRateService exchangeRateService;
     private final ObligationService obligationService;
+    private final TransactionRepository transactionRepository;
 
     @Autowired
-    public AccountService(UserService userService, TransactionService transactionService, SavingsGoalService savingsGoalService, ExchangeRateService exchangeRateService, ObligationService obligationService) {
+    public AccountService(UserService userService, TransactionService transactionService, SavingsGoalService savingsGoalService, ExchangeRateService exchangeRateService, ObligationService obligationService, TransactionRepository transactionRepository) {
         this.userService = userService;
         this.transactionService = transactionService;
         this.savingsGoalService = savingsGoalService;
         this.exchangeRateService = exchangeRateService;
         this.obligationService = obligationService;
+        this.transactionRepository = transactionRepository;
     }
 
     public ResponseEntity<IndexResponse> getMainAccountInformations(Jwt jwt) {
@@ -76,6 +80,35 @@ public class AccountService {
         IndexResponse response = new IndexResponse(saldo, euroSaldo, usdSaldo, weeklyExpenses, meanOfWeeklyExpenses, weeklyChange,
                 topCategories, savingsBalance, savingsBalanceEuro, nearestObligations, lastTransactions);
 
+        return ResponseEntity.ok(response);
+    }
+
+    public ResponseEntity<SummaryResponse> getAccountSummary(Jwt jwt) {
+        String username = jwt.getClaimAsString("preferred_username");
+        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+        long id = userAccount.getId();
+
+        List<Double> lastWeekExpenses = transactionService.getLast7DaysExpenses(id);
+        Double meanOfWeeklyTransactions = transactionService.getMeanOfWeeklyTransactions(id);
+        Double meanOfWeeklyIncomes = transactionService.getMeanOfWeeklyIncomes(id);
+
+        double weeklyExpenses = transactionService.getWeeklyExpenses(id);
+        double beforeWeeklyExpenses = transactionService.getBeforeWeekExpenses(id);
+        double weeklyChange;
+        if(weeklyExpenses == 0.0 && beforeWeeklyExpenses == 0.0){
+            weeklyChange = 0.0;
+        }else if(beforeWeeklyExpenses == 0.0){
+            weeklyChange = 100.0;
+        }else{
+            double denominatorOfWeeklyChange = beforeWeeklyExpenses;
+            weeklyChange = (weeklyExpenses/denominatorOfWeeklyChange * 100.0) - 100.0;
+        }
+
+        int numberOfWeeklyExpenses = transactionRepository.countLastWeekTransactions(id, "expense");
+        int numberOfWeeklyIncomes = transactionRepository.countLastWeekTransactions(id, "income");
+
+        SummaryResponse response = new SummaryResponse(lastWeekExpenses, meanOfWeeklyTransactions, meanOfWeeklyIncomes, weeklyChange,
+                numberOfWeeklyExpenses, numberOfWeeklyIncomes);
         return ResponseEntity.ok(response);
     }
 }

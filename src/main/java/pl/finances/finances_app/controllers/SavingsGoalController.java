@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import pl.finances.finances_app.dto.requestAndResponse.SavingsGoalRequest;
-import pl.finances.finances_app.dto.requestAndResponse.SavingsGoalResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalRequest;
+import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalResponse;
 import pl.finances.finances_app.services.SavingsGoalService;
 
 import java.util.List;

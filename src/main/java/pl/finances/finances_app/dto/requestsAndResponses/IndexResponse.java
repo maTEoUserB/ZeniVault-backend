@@ -1,4 +1,4 @@
-package pl.finances.finances_app.dto.requestAndResponse;
+package pl.finances.finances_app.dto.requestsAndResponses;
 
 import pl.finances.finances_app.dto.NearestObligationsDTO;
 import pl.finances.finances_app.dto.LastTransactionsDTO;

@@ -6,10 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity(name = "transactions")
+@Entity
+@Table(name = "transactions")
 @Getter
 @Setter
 @NoArgsConstructor

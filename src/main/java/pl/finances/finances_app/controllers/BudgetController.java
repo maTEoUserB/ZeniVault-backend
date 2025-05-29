@@ -7,8 +7,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import pl.finances.finances_app.dto.requestAndResponse.BudgetRequest;
-import pl.finances.finances_app.dto.requestAndResponse.BudgetResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.BudgetRequest;
+import pl.finances.finances_app.dto.requestsAndResponses.BudgetResponse;
 import pl.finances.finances_app.services.BudgetService;
 
 @Controller
