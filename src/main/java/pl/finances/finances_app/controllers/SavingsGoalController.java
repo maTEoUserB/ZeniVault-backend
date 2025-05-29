@@ -6,8 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalRequest;
-import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalResponse;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateSavingsGoalDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.SavingsGoalDTO;
+import pl.finances.finances_app.dto.SavingsGoalToList;
 import pl.finances.finances_app.services.SavingsGoalService;
 
 import java.util.List;
@@ -23,12 +24,12 @@ public class SavingsGoalController {
     }
 
     @PostMapping("/new/savings_goal")
-    ResponseEntity<SavingsGoalResponse> createSavingsGoal(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid SavingsGoalRequest savingsGoal) {
-        return savingsGoalService.createNewSavingsGoal(jwt, savingsGoal);
+    ResponseEntity<SavingsGoalDTO> createSavingsGoal(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid CreateSavingsGoalDTO createDto) {
+        return savingsGoalService.createNewSavingsGoal(jwt, createDto);
     }
 
     @GetMapping("/savings/goals")
-    ResponseEntity<List<SavingsGoalResponse>> getAllSavingsGoal(@AuthenticationPrincipal Jwt jwt) {
+    ResponseEntity<List<SavingsGoalToList>> getAllSavingsGoal(@AuthenticationPrincipal Jwt jwt) {
         return savingsGoalService.getAllSavingsGoal(jwt);
     }
 
@@ -38,7 +39,7 @@ public class SavingsGoalController {
     }
 
     @PatchMapping("/saving_goal/update/{id}")
-    ResponseEntity<SavingsGoalResponse> updateSavingGoal(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @RequestBody Map<String, Object> updates){
+    ResponseEntity<SavingsGoalDTO> updateSavingGoal(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @RequestBody Map<String, Object> updates){
         return savingsGoalService.updateSavingGoal(jwt, id, updates);
     }
 }

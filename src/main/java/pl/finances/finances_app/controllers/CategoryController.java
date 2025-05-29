@@ -5,12 +5,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import pl.finances.finances_app.dto.TopCategoryDTO;
-import pl.finances.finances_app.dto.requestsAndResponses.CategoryResponse;
+import pl.finances.finances_app.dto.CategorySummaryDTO;
 import pl.finances.finances_app.services.CategoryService;
 import pl.finances.finances_app.services.TransactionService;
 
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class CategoryController {
@@ -23,17 +23,17 @@ public class CategoryController {
     }
 
     @GetMapping("/incomes/categories")
-    ResponseEntity<CategoryResponse> getIncomeCategories(){
+    ResponseEntity<Set<String>> getIncomeCategories(){
         return categoryService.findAllCategories("income");
     }
 
     @GetMapping("/expenses/categories")
-    ResponseEntity<CategoryResponse> getExpenseCategories(){
+    ResponseEntity<Set<String>> getExpenseCategories(){
         return categoryService.findAllCategories("expense");
     }
 
-    @GetMapping("/income/categories/summary")
-    ResponseEntity<List<TopCategoryDTO>> getExpenseCategoriesSummary(@AuthenticationPrincipal Jwt jwt){
+    @GetMapping("/expense/categories/summary")
+    ResponseEntity<List<CategorySummaryDTO>> getExpenseCategoriesSummary(@AuthenticationPrincipal Jwt jwt){
         return transactionService.findExpenseCategoriesSummary(jwt);
     }
 }

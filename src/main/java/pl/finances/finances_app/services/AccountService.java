@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.finances.finances_app.dto.LastTransactionsDTO;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
-import pl.finances.finances_app.dto.TopCategoryDTO;
-import pl.finances.finances_app.dto.requestsAndResponses.IndexResponse;
-import pl.finances.finances_app.dto.requestsAndResponses.SummaryResponse;
+import pl.finances.finances_app.dto.CategorySummaryDTO;
+import pl.finances.finances_app.dto.IndexDTO;
+import pl.finances.finances_app.dto.SummaryDTO;
 import pl.finances.finances_app.repositories.TransactionRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -37,7 +37,7 @@ public class AccountService {
         this.transactionRepository = transactionRepository;
     }
 
-    public ResponseEntity<IndexResponse> getMainAccountInformations(Jwt jwt) {
+    public ResponseEntity<IndexDTO> getMainAccountInformations(Jwt jwt) {
 
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
@@ -73,17 +73,17 @@ public class AccountService {
             weeklyChange = (weeklyExpenses/denominatorOfWeeklyChange * 100.0) - 100.0;
         }
         double meanOfWeeklyExpenses = transactionService.getMeanOfWeeklyExpenses(id);
-        List<TopCategoryDTO> topCategories = transactionService.findTopExpenseCategories(id);
+        List<CategorySummaryDTO> topCategories = transactionService.findTopExpenseCategories(id);
         List<NearestObligationsDTO> nearestObligations = obligationService.getNearestObligations(id);
         List<LastTransactionsDTO> lastTransactions = transactionService.findLatestTransactions(id);
 
-        IndexResponse response = new IndexResponse(saldo, euroSaldo, usdSaldo, weeklyExpenses, meanOfWeeklyExpenses, weeklyChange,
+        IndexDTO response = new IndexDTO(saldo, euroSaldo, usdSaldo, weeklyExpenses, meanOfWeeklyExpenses, weeklyChange,
                 topCategories, savingsBalance, savingsBalanceEuro, nearestObligations, lastTransactions);
 
         return ResponseEntity.ok(response);
     }
 
-    public ResponseEntity<SummaryResponse> getAccountSummary(Jwt jwt) {
+    public ResponseEntity<SummaryDTO> getAccountSummary(Jwt jwt) {
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
         long id = userAccount.getId();
@@ -107,7 +107,7 @@ public class AccountService {
         int numberOfWeeklyExpenses = transactionRepository.countLastWeekTransactions(id, "expense");
         int numberOfWeeklyIncomes = transactionRepository.countLastWeekTransactions(id, "income");
 
-        SummaryResponse response = new SummaryResponse(lastWeekExpenses, meanOfWeeklyTransactions, meanOfWeeklyIncomes, weeklyChange,
+        SummaryDTO response = new SummaryDTO(lastWeekExpenses, meanOfWeeklyTransactions, meanOfWeeklyIncomes, weeklyChange,
                 numberOfWeeklyExpenses, numberOfWeeklyIncomes);
         return ResponseEntity.ok(response);
     }

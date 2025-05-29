@@ -8,9 +8,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import pl.finances.finances_app.dto.SavingsGoalDTO;
-import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalRequest;
-import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalResponse;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateSavingsGoalDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.SavingsGoalDTO;
+import pl.finances.finances_app.dto.SavingsGoalToList;
 import pl.finances.finances_app.repositories.SavingsGoalRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.SavingsGoalEntity;
@@ -33,22 +33,19 @@ public class SavingsGoalService {
         this.savingsGoalRepository = savingsGoalRepository;
     }
 
-
-    public ResponseEntity<SavingsGoalResponse> createNewSavingsGoal(Jwt jwt, SavingsGoalRequest savingsGoal){
+    public ResponseEntity<SavingsGoalDTO> createNewSavingsGoal(Jwt jwt, CreateSavingsGoalDTO createDto){
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        SavingsGoalEntity newSavingsGoal = new SavingsGoalEntity(savingsGoal.title(), userAccount, savingsGoal.currentAmount(), savingsGoal.finalAmount(), savingsGoal.deadline());
-        savingsGoalRepository.save(newSavingsGoal);
+        SavingsGoalEntity newGoal = new SavingsGoalEntity(createDto.getTitle(), userAccount, createDto.getCurrentAmount(), createDto.getFinalAmount(), createDto.getDeadline());
+        savingsGoalRepository.save(newGoal);
 
-        SavingsGoalResponse response = new SavingsGoalResponse(newSavingsGoal.getId(), newSavingsGoal.getGoalTitle(), newSavingsGoal.getCurrentAmount(),
-                newSavingsGoal.getFinalAmmount(), newSavingsGoal.getGoalDeadline());
+        SavingsGoalDTO dto = new SavingsGoalDTO(newGoal.getId(), newGoal.getGoalTitle(), newGoal.getCurrentAmount(),
+                newGoal.getFinalAmmount(), newGoal.getGoalDeadline());
 
-        return ResponseEntity.created(URI.create("/new/savings_goal/" + newSavingsGoal.getId())).body(response);
-    }
+//        SavingsGoalResponse response = new SavingsGoalResponse(newSavingsGoal.getId(), newSavingsGoal.getGoalTitle(), newSavingsGoal.getCurrentAmount(),
+//                newSavingsGoal.getFinalAmmount(), newSavingsGoal.getGoalDeadline());
 
-    public SavingsGoalDTO findLastSavingsGoal(long id) {
-        return savingsGoalRepository.findFirstByUserAccount_IdOrderByGoalDeadlineAsc(id)
-                .orElseThrow(() -> new EntityNotFoundException("Savings goal not found."));
+        return ResponseEntity.created(URI.create("/new/savings_goal/" + newGoal.getId())).body(dto);
     }
 
 
@@ -63,12 +60,12 @@ public class SavingsGoalService {
                 .sum();
     }
 
-    public ResponseEntity<List<SavingsGoalResponse>> getAllSavingsGoal(Jwt jwt) {
+    public ResponseEntity<List<SavingsGoalToList>> getAllSavingsGoal(Jwt jwt) {
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
 
-        List<SavingsGoalResponse> savingsGoals = new ArrayList<>();
-        savingsGoalRepository.findAllByUserAccount_Id(userAccount.getId()).forEach(sg -> savingsGoals.add(new SavingsGoalResponse(sg.getId(), sg.getGoalTitle(),
+        List<SavingsGoalToList> savingsGoals = new ArrayList<>();
+        savingsGoalRepository.findAllByUserAccount_Id(userAccount.getId()).forEach(sg -> savingsGoals.add(new SavingsGoalToList(sg.getId(), sg.getGoalTitle(),
                 sg.getCurrentAmount(), sg.getFinalAmmount(), sg.getGoalDeadline())));
 
         return ResponseEntity.ok(savingsGoals);
@@ -89,7 +86,7 @@ public class SavingsGoalService {
         return ResponseEntity.noContent().build();
     }
 
-    public ResponseEntity<SavingsGoalResponse> updateSavingGoal(Jwt jwt, long id, Map<String, Object> updates) {
+    public ResponseEntity<SavingsGoalDTO> updateSavingGoal(Jwt jwt, long id, Map<String, Object> updates) {
         SavingsGoalEntity savingsGoal = savingsGoalRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Savings goal not found."));
 
         String username = jwt.getClaimAsString("preferred_username");
@@ -109,7 +106,7 @@ public class SavingsGoalService {
         });
 
         savingsGoalRepository.save(savingsGoal);
-        SavingsGoalResponse response = new SavingsGoalResponse(savingsGoal.getId(), savingsGoal.getGoalTitle(), savingsGoal.getCurrentAmount(), savingsGoal.getFinalAmmount(), savingsGoal.getGoalDeadline());
-        return ResponseEntity.ok(response);
+        SavingsGoalDTO dto = new SavingsGoalDTO(savingsGoal.getId(), savingsGoal.getGoalTitle(), savingsGoal.getCurrentAmount(), savingsGoal.getFinalAmmount(), savingsGoal.getGoalDeadline());
+        return ResponseEntity.ok(dto);
     }
 }

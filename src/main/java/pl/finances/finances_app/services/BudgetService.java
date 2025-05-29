@@ -9,8 +9,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import pl.finances.finances_app.dto.requestsAndResponses.BudgetRequest;
-import pl.finances.finances_app.dto.requestsAndResponses.BudgetResponse;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.BudgetDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateBudgetDTO;
 import pl.finances.finances_app.repositories.BudgetRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.BudgetEntity;
@@ -32,8 +32,8 @@ public class BudgetService {
     }
 
 
-    public ResponseEntity<BudgetResponse> addNewBudget(Jwt jwt, @Valid BudgetRequest budget) {
-        BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_CategoryName(budget.categoryName());
+    public ResponseEntity<BudgetDTO> addNewBudget(Jwt jwt, @Valid CreateBudgetDTO createDto) {
+        BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_CategoryName(createDto.getCategoryName());
 
         if(budgetEntity == null) {
             throw new EntityNotFoundException("Budget entity not found");
@@ -46,10 +46,12 @@ public class BudgetService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this budget.");
         }
 
-        budgetEntity.setAmountLimit(budget.amountLimit());
+        budgetEntity.setAmountLimit(createDto.getAmountLimit());
         budgetRepository.save(budgetEntity);
 
-        BudgetResponse response = new BudgetResponse(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
-        return ResponseEntity.created(URI.create("/set/budget/" + budgetEntity.getCategory())).body(response);
+        BudgetDTO dto = new BudgetDTO(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
+
+//        BudgetResponse response = new BudgetResponse(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
+        return ResponseEntity.created(URI.create("/set/budget/" + budgetEntity.getCategory())).body(dto);
     }
 }

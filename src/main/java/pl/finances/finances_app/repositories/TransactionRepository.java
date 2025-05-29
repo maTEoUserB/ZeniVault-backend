@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pl.finances.finances_app.dto.LastTransactionsDTO;
-import pl.finances.finances_app.dto.TopCategoryDTO;
+import pl.finances.finances_app.dto.CategorySummaryDTO;
 import pl.finances.finances_app.repositories.entities.TransactionEntity;
 
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     void deleteById(Long id);
 
     @Query(value = """
-    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
+    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, b.amount_limit AS budgetAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
     FROM transactions t
     JOIN categories c ON t.category_id = c.id
     LEFT JOIN budgets b ON b.category_id = t.category_id AND b.user_id = t.user_id
@@ -29,10 +29,10 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     ORDER BY totalAmount DESC
     LIMIT 3
 """, nativeQuery = true)
-    List<TopCategoryDTO> findTop3ExpenseCategories(@Param("id") long id);
+    List<CategorySummaryDTO> findTop3ExpenseCategories(@Param("id") long id);
 
     @Query(value = """
-    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
+    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, b.amount_limit AS budgetAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
     FROM transactions t
     JOIN categories c ON t.category_id = c.id
     LEFT JOIN budgets b ON b.category_id = t.category_id AND b.user_id = t.user_id
@@ -40,7 +40,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     GROUP BY c.id, c.category_name, b.amount_limit
     ORDER BY totalAmount DESC
 """, nativeQuery = true)
-    List<TopCategoryDTO> findExpenseCategoriesSummary(@Param("id") long id);
+    List<CategorySummaryDTO> findExpenseCategoriesSummary(@Param("id") long id);
 
     @Query(value = """
     SELECT t.transaction_title AS transactionTitle, t.transaction_description AS transactionDescription, t.transaction_amount AS amount, c.category_name AS category, t.transaction_type AS type, t.transaction_date AS transactionDate
