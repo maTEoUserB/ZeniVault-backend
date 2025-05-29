@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.SavingsGoalDTO;
-import pl.finances.finances_app.dto.requestAndResponse.SavingsGoalRequest;
-import pl.finances.finances_app.dto.requestAndResponse.SavingsGoalResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalRequest;
+import pl.finances.finances_app.dto.requestsAndResponses.SavingsGoalResponse;
 import pl.finances.finances_app.repositories.SavingsGoalRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.SavingsGoalEntity;
@@ -37,14 +37,13 @@ public class SavingsGoalService {
     public ResponseEntity<SavingsGoalResponse> createNewSavingsGoal(Jwt jwt, SavingsGoalRequest savingsGoal){
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        SavingsGoalEntity newSavingsGoal = new SavingsGoalEntity(savingsGoal.title(), userAccount,
-                savingsGoal.description(), savingsGoal.currentAmount(), savingsGoal.finalAmount(), savingsGoal.deadline());
+        SavingsGoalEntity newSavingsGoal = new SavingsGoalEntity(savingsGoal.title(), userAccount, savingsGoal.currentAmount(), savingsGoal.finalAmount(), savingsGoal.deadline());
         savingsGoalRepository.save(newSavingsGoal);
 
         SavingsGoalResponse response = new SavingsGoalResponse(newSavingsGoal.getId(), newSavingsGoal.getGoalTitle(), newSavingsGoal.getCurrentAmount(),
                 newSavingsGoal.getFinalAmmount(), newSavingsGoal.getGoalDeadline());
 
-        return ResponseEntity.created(URI.create("/new/savings_goal/" + newSavingsGoal.getGoalTitle())).body(response);
+        return ResponseEntity.created(URI.create("/new/savings_goal/" + newSavingsGoal.getId())).body(response);
     }
 
     public SavingsGoalDTO findLastSavingsGoal(long id) {
@@ -102,7 +101,6 @@ public class SavingsGoalService {
         updates.forEach((key, value) -> {
             switch(key) {
                 case "goalTitle" -> savingsGoal.setGoalTitle((String) value);
-                case "goalDescription" -> savingsGoal.setGoalDescription((String) value);
                 case "currentAmount" -> savingsGoal.setCurrentAmount(Double.parseDouble(value.toString()));
                 case "finalAmount" -> savingsGoal.setFinalAmmount(Double.parseDouble(value.toString()));
                 case "goalDeadline" -> savingsGoal.setGoalDeadline(LocalDate.parse((String) value));

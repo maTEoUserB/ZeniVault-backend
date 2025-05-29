@@ -7,8 +7,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
-import pl.finances.finances_app.dto.requestAndResponse.ObligationRequest;
-import pl.finances.finances_app.dto.requestAndResponse.ObligationResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.ObligationRequest;
+import pl.finances.finances_app.dto.requestsAndResponses.ObligationResponse;
 import pl.finances.finances_app.services.ObligationService;
 
 import java.util.List;

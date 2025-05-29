@@ -8,8 +8,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import pl.finances.finances_app.dto.LastTransactionsDTO;
-import pl.finances.finances_app.dto.requestAndResponse.TransactionRequest;
-import pl.finances.finances_app.dto.requestAndResponse.TransactionResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.TransactionRequest;
+import pl.finances.finances_app.dto.requestsAndResponses.TransactionResponse;
 import pl.finances.finances_app.services.TransactionService;
 
 import java.time.LocalDate;
@@ -38,12 +38,13 @@ public class TransactionController {
     ResponseEntity<List<LastTransactionsDTO>> filterAndGetTransactions(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) Double amount,
+            @RequestParam(required = false) List<String> categories,
+            @RequestParam(required = false) Double startAmount,
+            @RequestParam(required = false) Double endAmount,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ){
-        return transactionService.filterAndGetTransactions(jwt, type, category, amount, startDate, endDate);
+        return transactionService.filterAndGetTransactions(jwt, type, categories, startAmount, endAmount, startDate, endDate);
     }
 
     @DeleteMapping("/transaction/delete/{id}")

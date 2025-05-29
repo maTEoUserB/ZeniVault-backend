@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import pl.finances.finances_app.dto.requestAndResponse.ExchangeRateResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.ExchangeRateResponse;
 
 @Service
 public class ExchangeRateService {

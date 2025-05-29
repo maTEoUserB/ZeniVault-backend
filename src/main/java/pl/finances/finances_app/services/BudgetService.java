@@ -9,12 +9,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import pl.finances.finances_app.dto.requestAndResponse.BudgetRequest;
-import pl.finances.finances_app.dto.requestAndResponse.BudgetResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.BudgetRequest;
+import pl.finances.finances_app.dto.requestsAndResponses.BudgetResponse;
 import pl.finances.finances_app.repositories.BudgetRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.BudgetEntity;
-import pl.finances.finances_app.repositories.entities.CategoryEntity;
 
 import java.net.URI;
 

@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.*;
-import pl.finances.finances_app.dto.requestAndResponse.TransactionRequest;
-import pl.finances.finances_app.dto.requestAndResponse.TransactionResponse;
+import pl.finances.finances_app.dto.requestsAndResponses.TransactionRequest;
+import pl.finances.finances_app.dto.requestsAndResponses.TransactionResponse;
 import pl.finances.finances_app.repositories.TransactionRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.CategoryEntity;
@@ -43,8 +43,10 @@ public class TransactionService {
                 userAccount, category, transaction.transactionType(), transaction.transactionDate());
         transactionRepository.save(newTransaction);
 
-        if(newTransaction.getTransactionType().equals("expense")) {
+        if (newTransaction.getTransactionType().equals("expense")) {
             userAccount.setSaldo(userAccount.getSaldo() - newTransaction.getTransactionAmount());
+        } else {
+            userAccount.setSaldo(userAccount.getSaldo() + newTransaction.getTransactionAmount());
         }
 
         TransactionResponse response = new TransactionResponse(newTransaction.getTransactionAmount(),
@@ -61,29 +63,37 @@ public class TransactionService {
         return ResponseEntity.ok(transactions);
     }
 
-    public ResponseEntity<List<LastTransactionsDTO>> filterAndGetTransactions(Jwt jwt, String type, String category,
-                                                                              Double amount, LocalDate startDate, LocalDate endDate) {
+    public ResponseEntity<List<LastTransactionsDTO>> filterAndGetTransactions(Jwt jwt, String type, List<String> categories,
+                                                                              Double startAmount, Double endAmount, LocalDate startDate, LocalDate endDate) {
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+
+        Double startAmountVal = (startAmount != null) ? startAmount : Double.MIN_VALUE;
+        Double endAmountVal = (endAmount != null) ? endAmount : Double.MAX_VALUE;
 
         LocalDateTime startTime = (startDate != null) ? startDate.atStartOfDay() : LocalDate.of(1900, 1, 1).atStartOfDay();
         LocalDateTime endTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now().plusDays(1);
 
+//        String[] categoriesArray = null;
+//        if (categories != null && !categories.isEmpty()) {
+//            categoriesArray = categories.toArray(new String[0]);
+//        }
+
         List<LastTransactionsDTO> transactions = transactionRepository.findFilteredTransactions(
-                userAccount.getId(), type, category, amount, startTime, endTime
+                userAccount.getId(), type, categories, startAmountVal, endAmountVal, startTime, endTime
         );
 
         return ResponseEntity.ok(transactions);
     }
 
     public ResponseEntity<?> deleteTransaction(Jwt jwt, long id) {
-        if(!transactionRepository.existsById(id)) {
+        if (!transactionRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        if(transactionRepository.findById(id).get().getUserAccount().getId() != userAccount.getId()) {
+        if (transactionRepository.findById(id).get().getUserAccount().getId() != userAccount.getId()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete this transaction.");
         }
 
@@ -108,12 +118,20 @@ public class TransactionService {
         return transactionRepository.findLast3Transactions(id);
     }
 
-    public double getWeeklyExpenses(long id){
+    public double getWeeklyExpenses(long id) {
         return transactionRepository.getLastWeekExpenses(id);
     }
 
-    public double getMeanOfWeeklyExpenses(long id){
+    public double getMeanOfWeeklyExpenses(long id) {
         return transactionRepository.getLastWeekAverageExpenses(id);
+    }
+
+    public double getMeanOfWeeklyIncomes(long id) {
+        return transactionRepository.getLastWeekAverageIncomes(id);
+    }
+
+    public double getMeanOfWeeklyTransactions(long id) {
+        return transactionRepository.getLastWeekAverageTransactions(id);
     }
 
     public double getBeforeWeekExpenses(long id) {
@@ -121,4 +139,7 @@ public class TransactionService {
     }
 
 
+    public List<Double> getLast7DaysExpenses(long id) {
+        return transactionRepository.getLast7DaysExpenses(id);
+    }
 }
