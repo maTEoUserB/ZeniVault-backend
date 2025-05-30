@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import pl.finances.finances_app.dto.requestsAndResponses.ExchangeRateResponse;
+import pl.finances.finances_app.dto.ExchangeRateDTO;
 
 @Service
 public class ExchangeRateService {
@@ -30,10 +30,10 @@ public class ExchangeRateService {
 
     private double findRate(String url){
         try {
-            ResponseEntity<ExchangeRateResponse> response = restTemplate.getForEntity(url, ExchangeRateResponse.class);
+            ResponseEntity<ExchangeRateDTO> response = restTemplate.getForEntity(url, ExchangeRateDTO.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                ExchangeRateResponse body = response.getBody();
+                ExchangeRateDTO body = response.getBody();
                 if (body.rates() != null && !body.rates().isEmpty()) {
                     return body.rates().getFirst().mid();
                 }

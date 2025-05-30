@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.finances.finances_app.dto.requestsAndResponses.CategoryResponse;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CategoryToListDTO;
 import pl.finances.finances_app.repositories.CategoryRepository;
 import pl.finances.finances_app.repositories.entities.CategoryEntity;
 
@@ -26,12 +26,12 @@ public class CategoryService {
         return categoryRepository.findById(id);
     }
 
-    public ResponseEntity<CategoryResponse> findAllCategories(String categoryType) {
-        Set<String> categories = categoryRepository.getAllByTypeForCategory(categoryType)
+    public ResponseEntity<Set<CategoryToListDTO>> findAllCategories(String categoryType) {
+        Set<CategoryToListDTO> categories = categoryRepository.getAllByTypeForCategory(categoryType)
                 .orElseThrow(() -> new RuntimeException("Categories not found"))
-                .stream().map(CategoryEntity::getCategoryName).collect(Collectors.toSet());
+                .stream().map(category -> new CategoryToListDTO(category.getId(), category.getCategoryName()))
+                .collect(Collectors.toSet());
 
-        CategoryResponse response = new CategoryResponse(categories);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(categories);
     }
 }

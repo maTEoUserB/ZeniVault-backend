@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
-import pl.finances.finances_app.dto.requestsAndResponses.ObligationRequest;
-import pl.finances.finances_app.dto.requestsAndResponses.ObligationResponse;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateObligationDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.ObligationDTO;
 import pl.finances.finances_app.repositories.ObligationRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.CategoryEntity;
@@ -36,19 +36,22 @@ public class ObligationService {
         return obligationRepository.getNearest2Obligations(id);
     }
 
-    public ResponseEntity<ObligationResponse> createNewObligation(Jwt jwt, ObligationRequest obligation) {
+    public ResponseEntity<ObligationDTO> createNewObligation(Jwt jwt, CreateObligationDTO createDto) {
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        CategoryEntity category = categoryService.findCategoryById(obligation.categoryId()).orElseThrow(() -> new EntityNotFoundException("Category not found."));
+        CategoryEntity category = categoryService.findCategoryById(createDto.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("Category not found."));
 
-        ObligationEntity newObligation = new ObligationEntity(userAccount, obligation.title(), obligation.amount(),
-                obligation.dateToPay(), category);
+        ObligationEntity newObligation = new ObligationEntity(userAccount, createDto.getTitle(), createDto.getAmount(),
+                createDto.getDateToPay(), category);
         obligationRepository.save(newObligation);
 
-        ObligationResponse response = new ObligationResponse(newObligation.getObligationTitle(), newObligation.getObligationAmount(),
+        ObligationDTO dto = new ObligationDTO(newObligation.getObligationTitle(), newObligation.getObligationAmount(),
                 newObligation.getDateToPay(), category.getId());
 
-        return ResponseEntity.created(URI.create("/new/obligation/" + newObligation.getId())).body(response);
+//        ObligationResponse response = new ObligationResponse(newObligation.getObligationTitle(), newObligation.getObligationAmount(),
+//                newObligation.getDateToPay(), category.getId());
+
+        return ResponseEntity.created(URI.create("/new/obligation/" + newObligation.getId())).body(dto);
     }
 
     public ResponseEntity<List<NearestObligationsDTO>> getObligations(Jwt jwt, boolean done) {

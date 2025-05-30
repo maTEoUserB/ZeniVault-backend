@@ -8,8 +8,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import pl.finances.finances_app.dto.LastTransactionsDTO;
-import pl.finances.finances_app.dto.requestsAndResponses.TransactionRequest;
-import pl.finances.finances_app.dto.requestsAndResponses.TransactionResponse;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateTransactionDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.TransactionDTO;
 import pl.finances.finances_app.services.TransactionService;
 
 import java.time.LocalDate;
@@ -25,8 +25,8 @@ public class TransactionController {
     }
 
     @PostMapping("/new/transaction")
-    ResponseEntity<TransactionResponse> createTransaction(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid TransactionRequest transaction) {
-        return transactionService.createNewTransaction(jwt, transaction);
+    ResponseEntity<TransactionDTO> createTransaction(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid CreateTransactionDTO createDto) {
+        return transactionService.createNewTransaction(jwt, createDto);
     }
 
     @GetMapping("/transactions")
@@ -48,7 +48,7 @@ public class TransactionController {
     }
 
     @DeleteMapping("/transaction/delete/{id}")
-    ResponseEntity<?> getTransactions(@AuthenticationPrincipal Jwt jwt, @RequestParam long id) {
+    ResponseEntity<?> deleteTransactions(@AuthenticationPrincipal Jwt jwt,  @PathVariable long id) {
         return transactionService.deleteTransaction(jwt, id);
     }
 }

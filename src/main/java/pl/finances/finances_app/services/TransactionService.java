@@ -9,8 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.*;
-import pl.finances.finances_app.dto.requestsAndResponses.TransactionRequest;
-import pl.finances.finances_app.dto.requestsAndResponses.TransactionResponse;
+import pl.finances.finances_app.dto.projection.TransactionProjection;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateTransactionDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.TransactionDTO;
 import pl.finances.finances_app.repositories.TransactionRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.CategoryEntity;
@@ -20,6 +21,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -35,12 +37,12 @@ public class TransactionService {
         this.categoryService = categoryService;
     }
 
-    public ResponseEntity<TransactionResponse> createNewTransaction(Jwt jwt, TransactionRequest transaction) {
+    public ResponseEntity<TransactionDTO> createNewTransaction(Jwt jwt, CreateTransactionDTO transaction) {
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        CategoryEntity category = categoryService.findCategoryById(transaction.categoryId()).orElseThrow(() -> new EntityNotFoundException("Category not found."));
-        TransactionEntity newTransaction = new TransactionEntity(transaction.transactionTitle(), transaction.transactionAmount(), transaction.transactionDescription(),
-                userAccount, category, transaction.transactionType(), transaction.transactionDate());
+        CategoryEntity category = categoryService.findCategoryById(transaction.getCategoryId()).orElseThrow(() -> new EntityNotFoundException("Category not found."));
+        TransactionEntity newTransaction = new TransactionEntity(transaction.getTransactionTitle(), transaction.getTransactionAmount(), transaction.getTransactionDescription(),
+                userAccount, category, transaction.getTransactionType(), transaction.getTransactionDate());
         transactionRepository.save(newTransaction);
 
         if (newTransaction.getTransactionType().equals("expense")) {
@@ -49,10 +51,12 @@ public class TransactionService {
             userAccount.setSaldo(userAccount.getSaldo() + newTransaction.getTransactionAmount());
         }
 
-        TransactionResponse response = new TransactionResponse(newTransaction.getTransactionAmount(),
-                newTransaction.getTransactionType(), newTransaction.getTransactionDate());
+        TransactionDTO dto = new TransactionDTO(newTransaction.getId(), newTransaction.getTransactionTitle(), newTransaction.getTransactionAmount(),
+                newTransaction.getTransactionDescription(), newTransaction.getCategory().getId(), newTransaction.getTransactionType(), newTransaction.getTransactionDate());
+//        TransactionResponse response = new TransactionResponse(newTransaction.getTransactionAmount(),
+//                newTransaction.getTransactionType(), newTransaction.getTransactionDate());
 
-        return ResponseEntity.created(URI.create("/new/transaction/" + newTransaction.getTransactionType())).body(response);
+        return ResponseEntity.created(URI.create("/new/transaction/" + newTransaction.getTransactionType())).body(dto);
     }
 
     public ResponseEntity<List<LastTransactionsDTO>> getAllTransactions(Jwt jwt) {
@@ -101,16 +105,16 @@ public class TransactionService {
         return ResponseEntity.noContent().build();
     }
 
-    public ResponseEntity<List<TopCategoryDTO>> findExpenseCategoriesSummary(Jwt jwt) {
+    public ResponseEntity<List<CategorySummaryDTO>> findExpenseCategoriesSummary(Jwt jwt) {
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
 
-        List<TopCategoryDTO> categories = transactionRepository.findExpenseCategoriesSummary(userAccount.getId());
+        List<CategorySummaryDTO> categories = transactionRepository.findExpenseCategoriesSummary(userAccount.getId());
 
         return ResponseEntity.ok(categories);
     }
 
-    public List<TopCategoryDTO> findTopExpenseCategories(long id) {
+    public List<CategorySummaryDTO> findTopExpenseCategories(long id) {
         return transactionRepository.findTop3ExpenseCategories(id);
     }
 
@@ -118,8 +122,8 @@ public class TransactionService {
         return transactionRepository.findLast3Transactions(id);
     }
 
-    public double getWeeklyExpenses(long id) {
-        return transactionRepository.getLastWeekExpenses(id);
+    public double getWeeklyTransactions(long id, String type) {
+        return transactionRepository.getLastWeekTransactions(id, type);
     }
 
     public double getMeanOfWeeklyExpenses(long id) {
@@ -138,8 +142,15 @@ public class TransactionService {
         return transactionRepository.getBeforeLastWeekExpenses(id);
     }
 
+    public double getMeanOfBeforeWeeklyExpenses(long id) {
+        return transactionRepository.getBeforeLastWeekAverageExpenses(id);
+    }
 
-    public List<Double> getLast7DaysExpenses(long id) {
+    public List<DailyExpensesDTO> getLast7DaysExpenses(long id) {
         return transactionRepository.getLast7DaysExpenses(id);
+    }
+
+    public TransactionProjection findMaxWeeklyExpense(long id) {
+        return transactionRepository.findMaxWeeklyExpense(id);
     }
 }
