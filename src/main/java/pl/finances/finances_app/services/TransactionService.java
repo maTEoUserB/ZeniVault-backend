@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.*;
+import pl.finances.finances_app.dto.projection.TransactionProjection;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateTransactionDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.TransactionDTO;
 import pl.finances.finances_app.repositories.TransactionRepository;
@@ -20,6 +21,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -120,8 +122,8 @@ public class TransactionService {
         return transactionRepository.findLast3Transactions(id);
     }
 
-    public double getWeeklyExpenses(long id) {
-        return transactionRepository.getLastWeekExpenses(id);
+    public double getWeeklyTransactions(long id, String type) {
+        return transactionRepository.getLastWeekTransactions(id, type);
     }
 
     public double getMeanOfWeeklyExpenses(long id) {
@@ -140,8 +142,15 @@ public class TransactionService {
         return transactionRepository.getBeforeLastWeekExpenses(id);
     }
 
+    public double getMeanOfBeforeWeeklyExpenses(long id) {
+        return transactionRepository.getBeforeLastWeekAverageExpenses(id);
+    }
 
-    public List<Double> getLast7DaysExpenses(long id) {
+    public List<DailyExpensesDTO> getLast7DaysExpenses(long id) {
         return transactionRepository.getLast7DaysExpenses(id);
+    }
+
+    public TransactionProjection findMaxWeeklyExpense(long id) {
+        return transactionRepository.findMaxWeeklyExpense(id);
     }
 }

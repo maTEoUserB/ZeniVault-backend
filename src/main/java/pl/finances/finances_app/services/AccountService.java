@@ -5,17 +5,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.finances.finances_app.dto.LastTransactionsDTO;
-import pl.finances.finances_app.dto.NearestObligationsDTO;
-import pl.finances.finances_app.dto.CategorySummaryDTO;
-import pl.finances.finances_app.dto.IndexDTO;
-import pl.finances.finances_app.dto.SummaryDTO;
+import pl.finances.finances_app.dto.*;
+import pl.finances.finances_app.dto.projection.TransactionProjection;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.TransactionDTO;
 import pl.finances.finances_app.repositories.TransactionRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -61,7 +61,7 @@ public class AccountService {
             savingsBalanceEuro = 0.0;
         }
 
-        double weeklyExpenses = transactionService.getWeeklyExpenses(id);
+        double weeklyExpenses = transactionService.getWeeklyTransactions(id, "expense");
         double beforeWeeklyExpenses = transactionService.getBeforeWeekExpenses(id);
         double weeklyChange;
         if(weeklyExpenses == 0.0 && beforeWeeklyExpenses == 0.0){
@@ -88,11 +88,15 @@ public class AccountService {
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
         long id = userAccount.getId();
 
-        List<Double> lastWeekExpenses = transactionService.getLast7DaysExpenses(id);
+        List<DailyExpensesDTO> lastWeekExpenses = transactionService.getLast7DaysExpenses(id);
+
+        Double averageThisWeek = transactionService.getMeanOfWeeklyExpenses(id);
+        Double averageLastWeek = transactionService.getMeanOfBeforeWeeklyExpenses(id);
+
         Double meanOfWeeklyTransactions = transactionService.getMeanOfWeeklyTransactions(id);
         Double meanOfWeeklyIncomes = transactionService.getMeanOfWeeklyIncomes(id);
 
-        double weeklyExpenses = transactionService.getWeeklyExpenses(id);
+        double weeklyExpenses = transactionService.getWeeklyTransactions(id, "expense");
         double beforeWeeklyExpenses = transactionService.getBeforeWeekExpenses(id);
         double weeklyChange;
         if(weeklyExpenses == 0.0 && beforeWeeklyExpenses == 0.0){
@@ -107,8 +111,13 @@ public class AccountService {
         int numberOfWeeklyExpenses = transactionRepository.countLastWeekTransactions(id, "expense");
         int numberOfWeeklyIncomes = transactionRepository.countLastWeekTransactions(id, "income");
 
-        SummaryDTO response = new SummaryDTO(lastWeekExpenses, meanOfWeeklyTransactions, meanOfWeeklyIncomes, weeklyChange,
-                numberOfWeeklyExpenses, numberOfWeeklyIncomes);
+        Double totalIncome = transactionService.getWeeklyTransactions(id, "income");
+        Double totalExpense = transactionService.getWeeklyTransactions(id, "expense");
+
+        TransactionProjection biggestExpense = transactionService.findMaxWeeklyExpense(id);
+
+        SummaryDTO response = new SummaryDTO(lastWeekExpenses, averageThisWeek, averageLastWeek, meanOfWeeklyTransactions, meanOfWeeklyIncomes, weeklyChange,
+                numberOfWeeklyExpenses, numberOfWeeklyIncomes, totalIncome, totalExpense, biggestExpense);
         return ResponseEntity.ok(response);
     }
 }

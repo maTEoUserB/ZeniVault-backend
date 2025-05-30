@@ -20,4 +20,10 @@ public class TransactionDTO {
     private long categoryId;
     private String transactionType;
     private LocalDateTime transactionDate;
+
+    public TransactionDTO(String transactionTitle, LocalDateTime transactionDate, double transactionAmount) {
+        this.transactionTitle = transactionTitle;
+        this.transactionDate = transactionDate;
+        this.transactionAmount = transactionAmount;
+    }
 }

@@ -4,12 +4,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import pl.finances.finances_app.dto.DailyExpensesDTO;
 import pl.finances.finances_app.dto.LastTransactionsDTO;
 import pl.finances.finances_app.dto.CategorySummaryDTO;
+import pl.finances.finances_app.dto.projection.TransactionProjection;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.TransactionDTO;
 import pl.finances.finances_app.repositories.entities.TransactionEntity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -18,6 +23,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     boolean existsById(Long id);
     Optional<TransactionEntity> findById(Long id);
     void deleteById(Long id);
+
 
     @Query(value = """
     SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, b.amount_limit AS budgetAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
@@ -53,7 +59,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     List<LastTransactionsDTO> findLast3Transactions(@Param("id") long id);
 
     @Query(value = """
-    SELECT COALESCE(SUM(t.transaction_amount), 0) AS totalAmount
+    SELECT DATE(t.transaction_date) AS dateLabel, COALESCE(SUM(t.transaction_amount), 0) AS totalAmount
     FROM transactions t
     WHERE t.user_id = :id
       AND t.transaction_type = 'expense'
@@ -62,18 +68,18 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     GROUP BY DATE(t.transaction_date)
     ORDER BY DATE(t.transaction_date) DESC
 """, nativeQuery = true)
-    List<Double> getLast7DaysExpenses(@Param("id") long id);
+    List<DailyExpensesDTO> getLast7DaysExpenses(@Param("id") long id);
 
 
     @Query(value = """
     SELECT COALESCE(SUM(t.transaction_amount), 0) AS totalAmount
     FROM transactions t
     WHERE t.user_id = :id
-      AND t.transaction_type = 'expense'
+      AND t.transaction_type = :type
       AND t.transaction_date >= DATE_TRUNC('week', NOW())
       AND t.transaction_date <= NOW()
 """, nativeQuery = true)
-    double getLastWeekExpenses(@Param("id") long id);
+    double getLastWeekTransactions(@Param("id") long id, @Param("type") String type);
 
     @Query(value = """
     SELECT COALESCE(AVG(t.transaction_amount), 0) AS averageAmount
@@ -91,9 +97,19 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     WHERE t.user_id = :id
       AND t.transaction_type = 'expense'
       AND t.transaction_date >= DATE_TRUNC('week', NOW()) - INTERVAL '1 week'
-      AND t.transaction_date < DATE_TRUNC('week', NOW()) 
+      AND t.transaction_date < DATE_TRUNC('week', NOW())
 """, nativeQuery = true)
     double getBeforeLastWeekExpenses(@Param("id") long id);
+
+    @Query(value = """
+    SELECT COALESCE(AVG(t.transaction_amount), 0) AS averageAmount
+    FROM transactions t
+    WHERE t.user_id = :id
+      AND t.transaction_type = 'expense'
+      AND t.transaction_date >= DATE_TRUNC('week', NOW()) - INTERVAL '1 week'
+      AND t.transaction_date < DATE_TRUNC('week', NOW())
+""", nativeQuery = true)
+    double getBeforeLastWeekAverageExpenses(@Param("id") long id);
 
     @Query(value = """
     SELECT COALESCE(AVG(t.transaction_amount), 0) AS averageAmount
@@ -162,4 +178,16 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
       AND t.transaction_date <= NOW()
 """, nativeQuery = true)
     int countLastWeekTransactions(@Param("id") long id, @Param("type") String type);
+
+    @Query(value = """
+    SELECT t.transaction_title AS transactionTitle, t.transaction_date AS transactionDate, t.transaction_amount AS transactionAmount
+    FROM transactions t
+    WHERE t.user_id = :id
+      AND t.transaction_type = 'expense'
+      AND t.transaction_date >= DATE_TRUNC('week', NOW())
+      AND t.transaction_date <= NOW()
+    ORDER BY t.transaction_amount DESC
+    LIMIT 1
+""", nativeQuery = true)
+    TransactionProjection findMaxWeeklyExpense(@Param("id") long id);
 }
