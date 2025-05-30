@@ -33,7 +33,7 @@ public class BudgetService {
 
 
     public ResponseEntity<BudgetDTO> addNewBudget(Jwt jwt, @Valid CreateBudgetDTO createDto) {
-        BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_CategoryName(createDto.getCategoryName());
+        BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_Id(createDto.getCategoryId());
 
         if(budgetEntity == null) {
             throw new EntityNotFoundException("Budget entity not found");

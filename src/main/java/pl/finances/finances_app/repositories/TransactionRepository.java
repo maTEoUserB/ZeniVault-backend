@@ -26,7 +26,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
 
     @Query(value = """
-    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, b.amount_limit AS budgetAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
+    SELECT c.id AS categoryId, c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, b.amount_limit AS budgetAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
     FROM transactions t
     JOIN categories c ON t.category_id = c.id
     LEFT JOIN budgets b ON b.category_id = t.category_id AND b.user_id = t.user_id
@@ -38,7 +38,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     List<CategorySummaryDTO> findTop3ExpenseCategories(@Param("id") long id);
 
     @Query(value = """
-    SELECT c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, b.amount_limit AS budgetAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
+    SELECT c.id AS categoryId, c.category_name AS categoryName, SUM(t.transaction_amount) AS totalAmount, b.amount_limit AS budgetAmount, SUM(t.transaction_amount)/NULLIF(b.amount_limit, 0) AS budgetProcent
     FROM transactions t
     JOIN categories c ON t.category_id = c.id
     LEFT JOIN budgets b ON b.category_id = t.category_id AND b.user_id = t.user_id

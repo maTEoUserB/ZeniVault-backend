@@ -9,5 +9,5 @@ import pl.finances.finances_app.repositories.entities.BudgetEntity;
 @Repository
 public interface BudgetRepository extends JpaRepository<BudgetEntity, Long> {
     BudgetEntity save(BudgetEntity budget);
-    BudgetEntity findBudgetEntitiesByCategory_CategoryName(@NotNull String categoryCategoryName);
+    BudgetEntity findBudgetEntitiesByCategory_Id(@NotNull Long categoryId);
 }
