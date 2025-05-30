@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import pl.finances.finances_app.dto.CategorySummaryDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CategoryToListDTO;
 import pl.finances.finances_app.services.CategoryService;
 import pl.finances.finances_app.services.TransactionService;
 
@@ -23,12 +24,12 @@ public class CategoryController {
     }
 
     @GetMapping("/incomes/categories")
-    ResponseEntity<Set<String>> getIncomeCategories(){
+    ResponseEntity<Set<CategoryToListDTO>> getIncomeCategories(){
         return categoryService.findAllCategories("income");
     }
 
     @GetMapping("/expenses/categories")
-    ResponseEntity<Set<String>> getExpenseCategories(){
+    ResponseEntity<Set<CategoryToListDTO>> getExpenseCategories(){
         return categoryService.findAllCategories("expense");
     }
 

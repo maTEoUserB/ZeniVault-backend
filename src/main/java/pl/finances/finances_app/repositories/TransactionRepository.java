@@ -49,7 +49,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     List<CategorySummaryDTO> findExpenseCategoriesSummary(@Param("id") long id);
 
     @Query(value = """
-    SELECT t.transaction_title AS transactionTitle, t.transaction_description AS transactionDescription, t.transaction_amount AS amount, c.category_name AS category, t.transaction_type AS type, t.transaction_date AS transactionDate
+    SELECT t.id AS is, t.transaction_title AS transactionTitle, t.transaction_description AS transactionDescription, t.transaction_amount AS amount, c.category_name AS category, t.transaction_type AS type, t.transaction_date AS transactionDate
     FROM transactions t
     JOIN categories c ON t.category_id = c.id
     WHERE t.user_id = :id
@@ -131,7 +131,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     double getLastWeekAverageTransactions(@Param("id") long id);
 
     @Query(value = """
-    SELECT t.transaction_title AS transactionTitle, t.transaction_description AS transactionDescription, t.transaction_amount AS amount, c.category_name AS category, t.transaction_type AS type, t.transaction_date AS transactionDate
+    SELECT t.id AS id, t.transaction_title AS transactionTitle, t.transaction_description AS transactionDescription, t.transaction_amount AS amount, c.category_name AS category, t.transaction_type AS type, t.transaction_date AS transactionDate
     FROM transactions t
     JOIN categories c ON t.category_id = c.id
     WHERE t.user_id = :id
@@ -142,6 +142,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
     @Query("""
     SELECT new pl.finances.finances_app.dto.LastTransactionsDTO(
+        t.id,
         t.transactionTitle,
         t.transactionDescription,
         t.transactionAmount,
