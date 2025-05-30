@@ -14,8 +14,8 @@ import lombok.*;
 @AllArgsConstructor
 public class CreateBudgetDTO {
 
-    @NotBlank(message = "Category name is required")
-    private String categoryName;
+    @NotNull(message = "Category id is required")
+    private long categoryId;
 
     @NotNull(message = "Amount limit is required")
     private Double amountLimit;
