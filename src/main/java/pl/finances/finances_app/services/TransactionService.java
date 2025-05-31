@@ -53,8 +53,7 @@ public class TransactionService {
 
         TransactionDTO dto = new TransactionDTO(newTransaction.getId(), newTransaction.getTransactionTitle(), newTransaction.getTransactionAmount(),
                 newTransaction.getTransactionDescription(), newTransaction.getCategory().getId(), newTransaction.getTransactionType(), newTransaction.getTransactionDate());
-//        TransactionResponse response = new TransactionResponse(newTransaction.getTransactionAmount(),
-//                newTransaction.getTransactionType(), newTransaction.getTransactionDate());
+
 
         return ResponseEntity.created(URI.create("/new/transaction/" + newTransaction.getTransactionType())).body(dto);
     }
@@ -75,13 +74,29 @@ public class TransactionService {
         Double startAmountVal = (startAmount != null) ? startAmount : Double.MIN_VALUE;
         Double endAmountVal = (endAmount != null) ? endAmount : Double.MAX_VALUE;
 
-        LocalDateTime startTime = (startDate != null) ? startDate.atStartOfDay() : LocalDate.of(1900, 1, 1).atStartOfDay();
-        LocalDateTime endTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.now().plusDays(1);
+        if(type.isEmpty()) type = null;
+        System.out.println("===================================================================");
+        System.out.println("Type: " + type);
+        System.out.println("===================================================================");
+        System.out.println("StartAmount: " + startAmountVal);
+        System.out.println("EndAmount: " + endAmountVal);
+        System.out.println("===================================================================");
 
-//        String[] categoriesArray = null;
-//        if (categories != null && !categories.isEmpty()) {
-//            categoriesArray = categories.toArray(new String[0]);
-//        }
+
+        LocalDateTime startTime = (startDate != null) ? startDate.atStartOfDay() : LocalDate.of(1900, 1, 1).atStartOfDay();
+        LocalDateTime endTime = (endDate != null) ? endDate.plusDays(1).atStartOfDay() : LocalDate.now().plusDays(1).atStartOfDay();
+        System.out.println("===================================================================");
+        System.out.println("StratTime: " + startTime);
+        System.out.println("EndTime: " + endTime);
+        System.out.println("===================================================================");
+
+
+        if(categories != null && categories.isEmpty()) {
+            categories = null;
+        }
+        System.out.println("===================================================================");
+        System.out.println("Categories: " + categories);
+        System.out.println("===================================================================");
 
         List<LastTransactionsDTO> transactions = transactionRepository.findFilteredTransactions(
                 userAccount.getId(), type, categories, startAmountVal, endAmountVal, startTime, endTime

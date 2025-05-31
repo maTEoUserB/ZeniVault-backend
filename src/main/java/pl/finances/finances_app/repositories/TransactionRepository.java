@@ -155,8 +155,8 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     WHERE t.userAccount.id = :id
     AND (:type IS NULL OR t.transactionType = :type)
     AND (:categories IS NULL OR c.categoryName IN :categories)
-    AND (:startAmount IS NULL OR t.transactionAmount >= :startAmount)
-    AND (:endAmount IS NULL OR t.transactionAmount <= :endAmount)
+    AND (t.transactionAmount >= :startAmount)
+    AND (t.transactionAmount <= :endAmount)
     AND t.transactionDate >= :startTime
     AND t.transactionDate < :endTime
 """)
