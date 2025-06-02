@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.BudgetDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateObligationDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.ObligationDTO;
 import pl.finances.finances_app.repositories.ObligationRepository;
@@ -48,8 +49,6 @@ public class ObligationService {
         ObligationDTO dto = new ObligationDTO(newObligation.getObligationTitle(), newObligation.getObligationAmount(),
                 newObligation.getDateToPay(), category.getId());
 
-//        ObligationResponse response = new ObligationResponse(newObligation.getObligationTitle(), newObligation.getObligationAmount(),
-//                newObligation.getDateToPay(), category.getId());
 
         return ResponseEntity.created(URI.create("/new/obligation/" + newObligation.getId())).body(dto);
     }
@@ -72,5 +71,27 @@ public class ObligationService {
 
         obligationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<ObligationDTO> updateObligation(Jwt jwt, Long id) {
+        ObligationEntity obligation = obligationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Obligation not found."));
+
+        if(obligation.isDone()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Obligation is already done");
+        }
+
+        String username = jwt.getClaimAsString("preferred_username");
+        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+
+        if(obligation.getUserAccount().getId() != userAccount.getId()){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this obligation.");
+        }
+
+        obligation.setDone(true);
+        obligationRepository.save(obligation);
+
+        ObligationDTO response = new ObligationDTO(obligation.getObligationTitle(), obligation.getObligationAmount(), obligation.getDateToPay(), obligation.getCategory().getId());
+
+        return ResponseEntity.ok(response);
     }
 }

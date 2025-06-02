@@ -51,7 +51,6 @@ public class BudgetService {
 
         BudgetDTO dto = new BudgetDTO(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
 
-//        BudgetResponse response = new BudgetResponse(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
         return ResponseEntity.created(URI.create("/set/budget/" + budgetEntity.getCategory())).body(dto);
     }
 }
