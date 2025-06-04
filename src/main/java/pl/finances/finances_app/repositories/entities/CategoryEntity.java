@@ -43,8 +43,9 @@ public class CategoryEntity {
     private Set<TransactionEntity> transactions;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")
     private Set<ObligationEntity> obligations;
-    @OneToOne(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private BudgetEntity budget;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")
+//    @OneToOne(mappedBy = "category", cascade = CascadeType.ALL)
+    private Set<BudgetEntity> budget;
 
     public CategoryEntity(@NotNull String categoryName, @NotNull String typeForCategory) {
         this.categoryName = categoryName;

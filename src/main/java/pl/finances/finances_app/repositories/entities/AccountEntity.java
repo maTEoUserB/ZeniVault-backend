@@ -26,10 +26,8 @@ public class AccountEntity {
 
     /**
      * Username of owner of the account.
-     * Must be between 8-30 characters.
      */
     @Column(unique = true, nullable = false)
-    @Size(min = 8, max = 30, message = "Username must be between 8 and 30 characters")
     private String username;
 
     /**
