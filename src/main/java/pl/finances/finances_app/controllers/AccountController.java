@@ -51,6 +51,12 @@ public class AccountController {
         return accountService.getAccountSummary(jwt);
     }
 
+    /**
+     * Set saldo of user account.
+     *
+     * @param jwt the authenticated user's JWT token
+     * @return the SaldoDTO with amount of saldo.
+     */
     @PostMapping("/saldo")
     ResponseEntity<SaldoDTO> setFirsSaldo(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid SaldoDTO saldo){
         return accountService.setFirstSaldo(jwt, saldo);

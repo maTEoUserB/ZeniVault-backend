@@ -1,6 +1,5 @@
 package pl.finances.finances_app.dto.requestsAndResponsesDto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
