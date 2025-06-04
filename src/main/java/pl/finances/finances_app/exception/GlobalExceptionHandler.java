@@ -18,10 +18,19 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ * Global exception handler for the application.
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handle validation exceptions.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with validation errors
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException ex, WebRequest request
@@ -44,6 +53,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Handle entity not found exceptions.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Object> handleEntityNotFoundException(
             EntityNotFoundException ex, WebRequest request
@@ -58,6 +74,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Handle response status exceptions.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Object> handleResponseStatusException(
             ResponseStatusException ex, WebRequest request
@@ -72,6 +95,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, ex.getStatusCode());
     }
 
+    /**
+     * Handle http message not readable exception.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Object> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException ex, WebRequest request
@@ -86,6 +116,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Handle missing servlet request parameter exception.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Object> handleMissingServletRequestParameterException(
             MissingServletRequestParameterException ex, WebRequest request
@@ -100,6 +137,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Handle http request method not supported exception.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Object> handleHttpRequestMethodNotSupportedException(
             HttpRequestMethodNotSupportedException ex, WebRequest request
@@ -114,6 +158,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
+    /**
+     * Handle data integrity violation exception.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolationException(
             DataIntegrityViolationException ex, WebRequest request
@@ -128,6 +179,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
+    /**
+     * Handle illegal argument exception.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request
@@ -142,6 +200,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Handle all other exceptions.
+     *
+     * @param ex the exception
+     * @param request the web request
+     * @return a response entity with error details
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(
             Exception ex, WebRequest request
@@ -153,7 +218,6 @@ public class GlobalExceptionHandler {
         body.put("message", ex.getMessage());
         body.put("path", request.getDescription(false));
 
-        ex.printStackTrace();
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
