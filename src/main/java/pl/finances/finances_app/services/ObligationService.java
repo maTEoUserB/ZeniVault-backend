@@ -12,12 +12,14 @@ import pl.finances.finances_app.dto.AllObligationsDTO;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.BudgetDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateObligationDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateTransactionDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.ObligationDTO;
 import pl.finances.finances_app.repositories.ObligationRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.CategoryEntity;
 import pl.finances.finances_app.repositories.entities.ObligationEntity;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,12 +28,14 @@ public class ObligationService {
     private final UserService userService;
     private final ObligationRepository obligationRepository;
     private final CategoryService categoryService;
+    private final TransactionService transactionService;
 
     @Autowired
-    public ObligationService(UserService userService, ObligationRepository obligationRepository, CategoryService categoryService) {
+    public ObligationService(UserService userService, ObligationRepository obligationRepository, CategoryService categoryService, TransactionService transactionService) {
         this.userService = userService;
         this.obligationRepository = obligationRepository;
         this.categoryService = categoryService;
+        this.transactionService = transactionService;
     }
 
     public List<NearestObligationsDTO> getNearestObligations(long id) {
@@ -93,6 +97,10 @@ public class ObligationService {
 
         obligation.setDone(true);
         obligationRepository.save(obligation);
+
+        LocalDateTime now = LocalDateTime.now();
+        CreateTransactionDTO createDto = new CreateTransactionDTO(obligation.getObligationTitle(), obligation.getObligationAmount(), "", obligation.getCategory().getId(), "expense", now);
+        transactionService.createNewTransaction(jwt, createDto);
 
         ObligationDTO response = new ObligationDTO(obligation.getObligationTitle(), obligation.getObligationAmount(), obligation.getDateToPay(), obligation.getCategory().getId());
 
