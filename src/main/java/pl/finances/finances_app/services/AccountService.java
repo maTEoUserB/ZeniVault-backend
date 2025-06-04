@@ -7,15 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.finances.finances_app.dto.*;
 import pl.finances.finances_app.dto.projection.TransactionProjection;
-import pl.finances.finances_app.dto.requestsAndResponsesDto.TransactionDTO;
+import pl.finances.finances_app.dto.requestsAndResponsesDto.SaldoDTO;
+import pl.finances.finances_app.repositories.AccountRepository;
 import pl.finances.finances_app.repositories.TransactionRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional
@@ -26,20 +25,23 @@ public class AccountService {
     private final ExchangeRateService exchangeRateService;
     private final ObligationService obligationService;
     private final TransactionRepository transactionRepository;
+    private final AccountRepository accountRepository;
 
     @Autowired
-    public AccountService(UserService userService, TransactionService transactionService, SavingsGoalService savingsGoalService, ExchangeRateService exchangeRateService, ObligationService obligationService, TransactionRepository transactionRepository) {
+    public AccountService(UserService userService, TransactionService transactionService, SavingsGoalService savingsGoalService, ExchangeRateService exchangeRateService, ObligationService obligationService, TransactionRepository transactionRepository, AccountRepository accountRepository) {
         this.userService = userService;
         this.transactionService = transactionService;
         this.savingsGoalService = savingsGoalService;
         this.exchangeRateService = exchangeRateService;
         this.obligationService = obligationService;
         this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
     }
 
-    public ResponseEntity<IndexDTO> getMainAccountInformations(Jwt jwt) {
+    public ResponseEntity<IndexDTO> getMainAccountInformation(Jwt jwt) {
 
         String username = jwt.getClaimAsString("preferred_username");
+        boolean isNew = !userService.existsUserByUsername(username);
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
         long id = userAccount.getId();
 
@@ -78,7 +80,7 @@ public class AccountService {
         List<LastTransactionsDTO> lastTransactions = transactionService.findLatestTransactions(id);
 
         IndexDTO response = new IndexDTO(saldo, euroSaldo, usdSaldo, weeklyExpenses, meanOfWeeklyExpenses, weeklyChange,
-                topCategories, savingsBalance, savingsBalanceEuro, nearestObligations, lastTransactions);
+                topCategories, savingsBalance, savingsBalanceEuro, nearestObligations, lastTransactions, isNew);
 
         return ResponseEntity.ok(response);
     }
@@ -119,5 +121,16 @@ public class AccountService {
         SummaryDTO response = new SummaryDTO(lastWeekExpenses, averageThisWeek, averageLastWeek, meanOfWeeklyTransactions, meanOfWeeklyIncomes, weeklyChange,
                 numberOfWeeklyExpenses, numberOfWeeklyIncomes, totalIncome, totalExpense, biggestExpense);
         return ResponseEntity.ok(response);
+    }
+
+    public ResponseEntity<SaldoDTO> setFirstSaldo(Jwt jwt, SaldoDTO saldo) {
+        String username = jwt.getClaimAsString("preferred_username");
+        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+        long id = userAccount.getId();
+
+        userAccount.setSaldo(saldo.getSaldoAmount());
+        accountRepository.save(userAccount);
+
+        return ResponseEntity.ok(saldo);
     }
 }

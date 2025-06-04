@@ -14,6 +14,7 @@ import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateBudgetDTO;
 import pl.finances.finances_app.repositories.BudgetRepository;
 import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.BudgetEntity;
+import pl.finances.finances_app.repositories.entities.CategoryEntity;
 
 import java.net.URI;
 
@@ -35,14 +36,14 @@ public class BudgetService {
     public ResponseEntity<BudgetDTO> addNewBudget(Jwt jwt, @Valid CreateBudgetDTO createDto) {
         BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_Id(createDto.getCategoryId());
 
-        if(budgetEntity == null) {
+        if (budgetEntity == null) {
             throw new EntityNotFoundException("Budget entity not found");
         }
 
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
 
-        if(budgetEntity.getUserAccount().getId() != userAccount.getId()) {
+        if (budgetEntity.getUserAccount().getId() != userAccount.getId()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this budget.");
         }
 
@@ -52,5 +53,13 @@ public class BudgetService {
         BudgetDTO dto = new BudgetDTO(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
 
         return ResponseEntity.created(URI.create("/set/budget/" + budgetEntity.getCategory())).body(dto);
+    }
+
+    public void createDefaultBudgets(AccountEntity userAccount) {
+        for (int i = 8; i <= 15; i++) {
+            CategoryEntity category = categoryService.findCategoryById(i).orElseThrow(() -> new EntityNotFoundException("Category not found"));
+            BudgetEntity budget = new BudgetEntity(userAccount, category, 0.0);
+            budgetRepository.save(budget);
+        }
     }
 }
