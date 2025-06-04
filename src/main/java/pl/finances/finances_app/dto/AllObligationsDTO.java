@@ -1,4 +1,6 @@
 package pl.finances.finances_app.dto;
 
-public record AllObligationsDTO() {
+import java.util.List;
+
+public record AllObligationsDTO(List<NearestObligationsDTO> paidObligations, List<NearestObligationsDTO> unpaidObligations) {
 }

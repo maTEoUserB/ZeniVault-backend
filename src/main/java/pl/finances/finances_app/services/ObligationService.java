@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import pl.finances.finances_app.dto.AllObligationsDTO;
 import pl.finances.finances_app.dto.NearestObligationsDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.BudgetDTO;
 import pl.finances.finances_app.dto.requestsAndResponsesDto.CreateObligationDTO;
@@ -53,11 +54,14 @@ public class ObligationService {
         return ResponseEntity.created(URI.create("/new/obligation/" + newObligation.getId())).body(dto);
     }
 
-    public ResponseEntity<List<NearestObligationsDTO>> getObligations(Jwt jwt, boolean done) {
+    public ResponseEntity<AllObligationsDTO> getObligations(Jwt jwt) {
         String username = jwt.getClaimAsString("preferred_username");
         AccountEntity userAccount = userService.getOrCreateUserAccount(username);
 
-        List<NearestObligationsDTO> obligations = obligationRepository.findObligations(userAccount.getId(), done);
+        List<NearestObligationsDTO> paidObligations = obligationRepository.findObligations(userAccount.getId(), true);
+        List<NearestObligationsDTO> unpaidObligations = obligationRepository.findObligations(userAccount.getId(), false);
+
+        AllObligationsDTO obligations = new AllObligationsDTO(paidObligations, unpaidObligations);
 
         return ResponseEntity.ok(obligations);
     }
