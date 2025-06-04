@@ -33,7 +33,7 @@ public class BudgetEntity {
      * Category covered by the budget.
      */
     @OneToOne
-    @JoinColumn(name = "category_id", nullable = false, unique = true)
+    @JoinColumn(name = "category_id", nullable = false)
     private CategoryEntity category;
 
     /**
