@@ -4,10 +4,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import pl.finances.finances_app.repositories.entities.AccountEntity;
 import pl.finances.finances_app.repositories.entities.BudgetEntity;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<BudgetEntity, Long> {
     BudgetEntity save(BudgetEntity budget);
     BudgetEntity findBudgetEntitiesByCategory_Id(@NotNull Long categoryId);
+    BudgetEntity findBudgetEntitiesByCategory_IdAndUserAccount(@jakarta.validation.constraints.NotNull(message = "Category id is required") long categoryId, AccountEntity userAccount);
 }
