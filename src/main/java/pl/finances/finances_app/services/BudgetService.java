@@ -34,14 +34,13 @@ public class BudgetService {
 
 
     public ResponseEntity<BudgetDTO> addNewBudget(Jwt jwt, @Valid CreateBudgetDTO createDto) {
-        BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_Id(createDto.getCategoryId());
+        String username = jwt.getClaimAsString("preferred_username");
+        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+        BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_IdAndUserAccount(createDto.getCategoryId(), userAccount);
 
         if (budgetEntity == null) {
             throw new EntityNotFoundException("Budget entity not found");
         }
-
-        String username = jwt.getClaimAsString("preferred_username");
-        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
 
         if (budgetEntity.getUserAccount().getId() != userAccount.getId()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this budget.");
