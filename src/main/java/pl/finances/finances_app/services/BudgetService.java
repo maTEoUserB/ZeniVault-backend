@@ -18,6 +18,9 @@ import pl.finances.finances_app.repositories.entities.CategoryEntity;
 
 import java.net.URI;
 
+/**
+ * Provides business logic for managing budgets in the system.
+ */
 @Service
 @Transactional
 public class BudgetService {
@@ -25,6 +28,13 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
     private final CategoryService categoryService;
 
+    /**
+     * Constructs a new BudgetService with the required repository and services.
+     *
+     * @param userService the service for user data managing
+     * @param budgetRepository the repository for budget data access
+     * @param categoryService the service for category data managing
+     */
     @Autowired
     public BudgetService(UserService userService, BudgetRepository budgetRepository, CategoryService categoryService) {
         this.userService = userService;
@@ -32,17 +42,16 @@ public class BudgetService {
         this.categoryService = categoryService;
     }
 
-
+    @Transactional
     public ResponseEntity<BudgetDTO> addNewBudget(Jwt jwt, @Valid CreateBudgetDTO createDto) {
-        String username = jwt.getClaimAsString("preferred_username");
-        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+        long id = userService.getUserAccountId(jwt);
+        AccountEntity userAccount = userService.findUserById(id).get();
         BudgetEntity budgetEntity = budgetRepository.findBudgetEntitiesByCategory_IdAndUserAccount(createDto.getCategoryId(), userAccount);
 
         if (budgetEntity == null) {
             throw new EntityNotFoundException("Budget entity not found");
         }
-
-        if (budgetEntity.getUserAccount().getId() != userAccount.getId()) {
+        if (budgetEntity.getUserAccount().getId() != id) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this budget.");
         }
 
@@ -51,9 +60,10 @@ public class BudgetService {
 
         BudgetDTO dto = new BudgetDTO(budgetEntity.getCategory().getCategoryName(), budgetEntity.getAmountLimit());
 
-        return ResponseEntity.created(URI.create("/set/budget/" + budgetEntity.getCategory())).body(dto);
+        return ResponseEntity.created(URI.create("/set/budget/" + budgetEntity.getCategory().getId())).body(dto);
     }
 
+    @Transactional
     public void createDefaultBudgets(AccountEntity userAccount) {
         for (int i = 8; i <= 15; i++) {
             CategoryEntity category = categoryService.findCategoryById(i).orElseThrow(() -> new EntityNotFoundException("Category not found"));

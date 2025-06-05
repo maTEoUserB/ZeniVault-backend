@@ -10,6 +10,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Configures security settings for the application, including JWT authentication
+ * and CORS for frontend communication.
+ */
 @Configuration
 public class SecurityConfig {
 

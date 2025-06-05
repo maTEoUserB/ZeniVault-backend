@@ -21,35 +21,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Provides business logic for managing savings goals in the system.
+ */
 @Service
 @Transactional
 public class SavingsGoalService {
     private final UserService userService;
     private final SavingsGoalRepository savingsGoalRepository;
 
+    /**
+     * Constructs a new SavingsGoalService with the required repository and service.
+     *
+     * @param userService the service for user data managing
+     * @param savingsGoalRepository the repository for savings goal data access
+     */
     @Autowired
     public SavingsGoalService(UserService userService, SavingsGoalRepository savingsGoalRepository) {
         this.userService = userService;
         this.savingsGoalRepository = savingsGoalRepository;
     }
 
+    @Transactional
     public ResponseEntity<SavingsGoalDTO> createNewSavingsGoal(Jwt jwt, CreateSavingsGoalDTO createDto){
-        String username = jwt.getClaimAsString("preferred_username");
-        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+        long id = userService.getUserAccountId(jwt);
+        AccountEntity userAccount = userService.findUserById(id).get();
+
         SavingsGoalEntity newGoal = new SavingsGoalEntity(createDto.getTitle(), userAccount, createDto.getCurrentAmount(), createDto.getFinalAmount(), createDto.getDeadline());
         savingsGoalRepository.save(newGoal);
 
         SavingsGoalDTO dto = new SavingsGoalDTO(newGoal.getId(), newGoal.getGoalTitle(), newGoal.getCurrentAmount(),
                 newGoal.getFinalAmmount(), newGoal.getGoalDeadline());
 
-//        SavingsGoalResponse response = new SavingsGoalResponse(newSavingsGoal.getId(), newSavingsGoal.getGoalTitle(), newSavingsGoal.getCurrentAmount(),
-//                newSavingsGoal.getFinalAmmount(), newSavingsGoal.getGoalDeadline());
-
         return ResponseEntity.created(URI.create("/new/savings_goal/" + newGoal.getId())).body(dto);
     }
 
 
-    public double getCurrentSavingsBalance(AccountEntity userAccount) {
+    @Transactional
+    public double getCurrentSavingsBalance(long id) {
+        AccountEntity userAccount = userService.findUserById(id).orElseThrow(() -> new EntityNotFoundException("User entity not found"));
+
         if(userAccount == null || userAccount.getSavingsGoals() == null || userAccount.getSavingsGoals().isEmpty()) {
             return 0.0;
         }
@@ -60,25 +71,25 @@ public class SavingsGoalService {
                 .sum();
     }
 
+    @Transactional
     public ResponseEntity<List<SavingsGoalToList>> getAllSavingsGoal(Jwt jwt) {
-        String username = jwt.getClaimAsString("preferred_username");
-        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
+        long id = userService.getUserAccountId(jwt);
 
         List<SavingsGoalToList> savingsGoals = new ArrayList<>();
-        savingsGoalRepository.findAllByUserAccount_Id(userAccount.getId()).forEach(sg -> savingsGoals.add(new SavingsGoalToList(sg.getId(), sg.getGoalTitle(),
+        savingsGoalRepository.findAllByUserAccount_Id(id).forEach(sg -> savingsGoals.add(new SavingsGoalToList(sg.getId(), sg.getGoalTitle(),
                 sg.getCurrentAmount(), sg.getFinalAmmount(), sg.getGoalDeadline())));
 
         return ResponseEntity.ok(savingsGoals);
     }
 
+    @Transactional
     public ResponseEntity<?> deleteSavingGoalById(Jwt jwt, long id) {
         if(!savingsGoalRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+        long userId = userService.getUserAccountId(jwt);
 
-        String username = jwt.getClaimAsString("preferred_username");
-        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        if(savingsGoalRepository.findById(id).get().getUserAccount().getId() != userAccount.getId()) {
+        if(savingsGoalRepository.findById(id).get().getUserAccount().getId() != userId) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete this savings goal.");
         }
 
@@ -86,15 +97,24 @@ public class SavingsGoalService {
         return ResponseEntity.noContent().build();
     }
 
+    @Transactional
     public ResponseEntity<SavingsGoalDTO> updateSavingGoal(Jwt jwt, long id, Map<String, Object> updates) {
         SavingsGoalEntity savingsGoal = savingsGoalRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Savings goal not found."));
 
-        String username = jwt.getClaimAsString("preferred_username");
-        AccountEntity userAccount = userService.getOrCreateUserAccount(username);
-        if(savingsGoal.getUserAccount().getId() != userAccount.getId()) {
+        long userId = userService.getUserAccountId(jwt);
+        if(savingsGoal.getUserAccount().getId() != userId) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this savings goal.");
         }
 
+        setUpdates(savingsGoal, updates);
+        savingsGoalRepository.save(savingsGoal);
+
+        SavingsGoalDTO dto = new SavingsGoalDTO(savingsGoal.getId(), savingsGoal.getGoalTitle(), savingsGoal.getCurrentAmount(), savingsGoal.getFinalAmmount(), savingsGoal.getGoalDeadline());
+        return ResponseEntity.ok(dto);
+    }
+
+    @Transactional
+    protected void setUpdates(SavingsGoalEntity savingsGoal, Map<String, Object> updates) {
         updates.forEach((key, value) -> {
             switch(key) {
                 case "goalTitle" -> savingsGoal.setGoalTitle((String) value);
@@ -104,9 +124,5 @@ public class SavingsGoalService {
                 default -> throw new IllegalArgumentException("Unknown key " + key);
             }
         });
-
-        savingsGoalRepository.save(savingsGoal);
-        SavingsGoalDTO dto = new SavingsGoalDTO(savingsGoal.getId(), savingsGoal.getGoalTitle(), savingsGoal.getCurrentAmount(), savingsGoal.getFinalAmmount(), savingsGoal.getGoalDeadline());
-        return ResponseEntity.ok(dto);
     }
 }

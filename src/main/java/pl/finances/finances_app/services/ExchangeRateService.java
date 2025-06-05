@@ -7,10 +7,18 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import pl.finances.finances_app.dto.ExchangeRateDTO;
 
+/**
+ * Provides business logic for getting exchange rates from API.
+ */
 @Service
 public class ExchangeRateService {
     private final RestTemplate restTemplate;
 
+    /**
+     * Constructs a new ExchangeRateService with the required object.
+     *
+     * @param restTemplate the object (web client) for getting information from external api
+     */
     @Autowired
     public ExchangeRateService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
